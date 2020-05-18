@@ -28,18 +28,35 @@ object MultiplePersisting extends App {
     //the below receivecommand  persists TaxRecord first and then InvoiceRecord
     // and also record and invoiceRecord sent and received to TaxAuthority in order
     //journals are implemented using actors
+
+    /* for nested it ensures order
+    [INFO] [akka://MultiplePersistsDemo/user/$a] TaxRecord(uk-123123123,0,Mon May 18 09:27:26 ICT 2020,333)
+    [INFO] [akka://MultiplePersistsDemo/user/$a] InvoiceRecord(0,Invoice(Company,Mon May 18 09:27:26 ICT 2020,1000))
+    [INFO] [akka://MultiplePersistsDemo/user/$a] 've received tax authority
+    [INFO] [  akka://MultiplePersistsDemo/user/$a] 've received invoice authority
+     */
     override def receiveCommand: Receive = {
       case invoice: Invoice =>
         persist(TaxRecord(taxId, latestTaxRecordID, invoice.date, invoice.amount/3)){
           record => {
-            taxAuthority ! record
+            taxAuthority ! record //first message
             latestTaxRecordID += 1
+            persist("'ve received tax authority") {
+              event => {
+                taxAuthority ! event //third message
+              }
+            }
           }
         }
         persist(InvoiceRecord(latestInvoiceRecordID, invoice)){
           invoiceRecord => {
-            taxAuthority ! invoiceRecord
+            taxAuthority ! invoiceRecord //second message
             latestInvoiceRecordID += 1
+            persist("'ve received invoice authority") {
+              event => {
+                taxAuthority ! event //fourth message
+              }
+            }
           }
         }
     }
@@ -65,4 +82,5 @@ object MultiplePersisting extends App {
   val accountant = system.actorOf(DiligentAccountant.props("uk-123123123", taxAuthority))
 
   accountant ! Invoice("Company", new Date, 1000)
+  accountant ! Invoice("SuperCar", new Date, 2000)
 }
