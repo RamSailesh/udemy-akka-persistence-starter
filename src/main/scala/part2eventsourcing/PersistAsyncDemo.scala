@@ -56,7 +56,7 @@ object PersistAsyncDemo extends App {
   in Persist we have to wait until event is processed.
 
   persist - guarantees everything in order
-  persistAsync - guarantees calls and callbacks in order, any mutation blocks present within the code may put the actor in non-deterministic state 
+  persistAsync - guarantees calls and callbacks in order, any mutation blocks present within the code may put the actor in non-deterministic state
    */
 
 }
