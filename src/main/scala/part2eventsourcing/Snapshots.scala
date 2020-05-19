@@ -67,7 +67,7 @@ object Snapshots extends App {
       case SnapshotOffer(metadata, contents) => {
         log.info(s"recovered snapshot : $metadata")
         contents.asInstanceOf[mutable.Queue[(String, String)]].foreach(lastMessages.enqueue(_))
-      } 
+      }
     }
 
     def maybeReplaceMessage(sender: String, contents: String) = {
