@@ -7,22 +7,25 @@ object RecoveryDemo extends App {
 
 
   case class Command(contents: String)
-  case class Event(contents: String)
+  case class Event(id: Int, contents: String)
   class RecoveryActor extends PersistentActor with ActorLogging {
 
     override def persistenceId: String = "recovery-actor"
 
-    override def receiveCommand: Receive = {
+    override def receiveCommand: Receive = online(0)
+
+    def online(latestID: Int): Receive = {
       case Command(contents) =>
-        persist(Event(contents)) { event =>
+        persist(Event(latestID, contents)) { event =>
           log.info(s"Successfully persisted $event")
         }
-
+        context.become(online(latestID+1))
     }
 
     override def receiveRecover: Receive = {
-      case Event(contents) =>
+      case Event(id, contents) =>
         log.info(s"Recovered $contents")
+        context.become(online(id+1))
       case RecoveryCompleted =>
         log.info(s"Recovery completed !!!")
     }
