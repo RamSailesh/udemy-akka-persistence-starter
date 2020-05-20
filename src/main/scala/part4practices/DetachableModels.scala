@@ -47,7 +47,7 @@ object DetachableModels extends App {
  }
 
 object DomainModel {
-  case class User(id: String, email: String)
+  case class User(id: String, email: String, name: String)
   case class Coupon(code: String, promotionAmount: Int)
 
   case class ApplyCoupon(coupon: Coupon, user: User)
@@ -56,7 +56,10 @@ object DomainModel {
 
 object DataModel {
   case class WrittenCouponApplied(code: String, userID: String, userEmail: String)
+  case class WrittenCouponAppliedV2(code: String, userID: String, userEmail: String, userName: String)
 }
+}
+
 
 class ModelAdapter extends EventAdapter {
   import DataModel._
@@ -68,7 +71,10 @@ class ModelAdapter extends EventAdapter {
   override def fromJournal(event: Any, manifest: String): EventSeq = event match {
     case couponApplied @ WrittenCouponApplied(code, userId, userEmail) =>
       println(s"fromJournal $couponApplied")
-      EventSeq.single(CouponApplied(code, User(userId, userEmail)))
+      EventSeq.single(CouponApplied(code, User(userId, userEmail, "")))
+    case couponApplied @ WrittenCouponAppliedV2(code, userId, userEmail, userName) =>
+      println(s"fromJournal $couponApplied")
+      EventSeq.single(CouponApplied(code, User(userId, userEmail, userName)))
     case other =>  {
       println(s"fromJournal Other $other")
       EventSeq.single(other)
@@ -79,7 +85,7 @@ class ModelAdapter extends EventAdapter {
   override def toJournal(event: Any): Any = event match {
     case event @ CouponApplied(code, user) =>
       println(s"toJournal $event")
-      EventSeq.single(WrittenCouponApplied(code, user.id, user.email))
+      EventSeq.single(WrittenCouponAppliedV2(code, user.id, user.email, user.name))
     case other =>  {
       println(s"toJournalOther $other")
       EventSeq.single(other)
