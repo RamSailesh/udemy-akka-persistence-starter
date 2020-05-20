@@ -58,7 +58,6 @@ object DataModel {
   case class WrittenCouponApplied(code: String, userID: String, userEmail: String)
   case class WrittenCouponAppliedV2(code: String, userID: String, userEmail: String, userName: String)
 }
-}
 
 
 class ModelAdapter extends EventAdapter {
